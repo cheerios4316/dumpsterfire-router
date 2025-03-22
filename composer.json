@@ -1,0 +1,29 @@
+{
+    "name": "cheerios/dumpsterfire-router",
+    "description": "Router for Dumpsterfire SDK",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Cheerios4316"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "DumpsterfireComponents\\": "src/"
+        },
+        "classmap": [
+        "src/"
+    ]
+    },
+    "require": {
+        "cheerios/dumpsterfire-base": "dev-main"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../repos/dumpsterfire-base"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
