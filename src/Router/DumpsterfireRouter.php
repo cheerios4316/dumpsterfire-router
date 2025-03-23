@@ -17,6 +17,8 @@ class DumpsterfireRouter implements RouterInterface
      */
     protected static array $routers = [];
 
+    protected string $prefix = "";
+
     /**
      * 
      * @var array<string, ControllerInterface> $routes;
@@ -82,7 +84,7 @@ class DumpsterfireRouter implements RouterInterface
          * @var class-string<ControllerInterface> $controller
          */
         foreach ($routes as $path => $controller) {
-            $path = '/' . trim($path, '/');
+            $path =  '/' . $this->prefix . trim($path, '/');
             
             $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $path);
             $pattern = '#^' . str_replace('\\/', '/', $pattern) . '\/?$#';
@@ -106,6 +108,16 @@ class DumpsterfireRouter implements RouterInterface
     public function show404(): void
     {
         die('implement 404 page');
+    }
+
+    public function setPrefix(string $prefix): self
+    {
+        $this->prefix = empty($prefix) ?
+            $prefix :
+            trim($prefix, '/') . '/'
+        ;
+
+        return $this;
     }
 
     public static function new(): self
