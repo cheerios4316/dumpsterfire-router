@@ -5,6 +5,7 @@ namespace DumpsterfireRouter\Router;
 use DumpsterfireBase\Container\Container;
 use DumpsterfireRouter\Exceptions\RoutingException;
 use DumpsterfireRouter\Interfaces\ControllerInterface;
+use DumpsterfireRouter\Interfaces\IControllerParams;
 use DumpsterfireRouter\Interfaces\RouterInterface;
 use Exception;
 use Throwable;
@@ -27,6 +28,7 @@ class DumpsterfireRouter implements RouterInterface
         try {
             $controller = $this->matchRoute($route);
         } catch (Throwable $e) {
+            dump($e);die();;
             $this->show404();
         }
 
@@ -39,7 +41,7 @@ class DumpsterfireRouter implements RouterInterface
             $routes = &self::$routes;
         }
 
-        if(isset($routes[$path])) {
+        if (isset($routes[$path])) {
             throw new RoutingException('Routing rule "' . $path . '" is already defined.');
         }
 
@@ -62,7 +64,7 @@ class DumpsterfireRouter implements RouterInterface
     public function getRoutes(): array
     {
         $routes = [...self::$routes];
-        foreach(self::$routers as $router) {
+        foreach (self::$routers as $router) {
             $routes = [
                 ...$routes,
                 $router->getRoutes()
@@ -76,13 +78,25 @@ class DumpsterfireRouter implements RouterInterface
     {
         $routes = $this->getRoutes();
 
+        /**
+         * @var class-string<ControllerInterface> $controller
+         */
         foreach ($routes as $path => $controller) {
-            $pattern = '/' . preg_quote($path, '/') . '/';
+            $path = '/' . trim($path, '/');
+            
+            $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $path);
+            $pattern = '#^' . str_replace('\\/', '/', $pattern) . '\/?$#';
 
             preg_match($pattern, $route, $matches);
 
             if (!empty($matches) && is_array($matches) && !empty($matches[0])) {
-                return Container::getInstance()->create($controller);
+                $controller = Container::getInstance()->create($controller);
+
+                if($controller instanceof IControllerParams) {
+                    $controller->setParams($matches);
+                }
+
+                return $controller;
             }
         }
 
@@ -92,5 +106,10 @@ class DumpsterfireRouter implements RouterInterface
     public function show404(): void
     {
         die('implement 404 page');
+    }
+
+    public static function new(): self
+    {
+        return Container::getInstance()->create(self::class);
     }
 }
